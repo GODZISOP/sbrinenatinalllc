@@ -1,22 +1,34 @@
-# Hassan Farid LLC - Wholesale & Retail E-Commerce Website
+# SBR Internationals LLC - Quality For Life
 
-Official digital catalog and wholesale procurement portal for **HASSAN FARID LLC**.
+Official digital showcase and online store for **SBR Internationals LLC** ([sbrinternationalsllc.com](https://sbrinternationalsllc.com/)).
 
 ## 🌟 Overview
-* **Brand:** Hassan Farid LLC
-* **Slogan:** Quality finds, easy shopping, and dependable service
-* **Theme:** Luxury Espresso & Warm Caramel Amber
+* **Brand:** SBR Internationals LLC
+* **Slogan:** Quality For Life • Shop Quality Products
+* **Tagline:** Quality essentials for home, beauty, fashion, wellness, and everyday living.
 * **Primary Contacts:**
-  * **Email:** info@hassanfaridllc.com
-  * **Phone / WhatsApp:** (+966) 50 741 5829
-  * **US Support:** +1 661-577-0052
-  * **Registered Address:** 30 N Gould St # 68479 Sheridan, WY 82801
+  * **Email:** info@sbrinternationalsllc.com
+  * **Phone:** (+1) 3076677525
+  * **WhatsApp:** [Instant Chat](https://wa.me/+13076677525)
+  * **Registered Address:** 30 N Gould St # 68479 Sheridan, WY 82801, United States
+  * **Website:** [https://sbrinternationalsllc.com/](https://sbrinternationalsllc.com/)
 
-## 🛍️ Collections
-1. **Daily Essentials**
-2. **Fashion Finds**
-3. **Home Living**
-4. **Top Picks**
+## 🛍️ Curated Categories
+1. **Something For Everyone**
+2. **Home & Kitchen**
+3. **Beauty & Care**
+4. **Personal Care**
+5. **Smart Tech & Electronics**
+6. **Fashion & Wellness**
+7. **Best Sellers**
+8. **New Arrivals**
+
+## 📦 Featured Products
+* **Style And Wellness Picks** — ₨ 45
+* **Smart Tech For Living** — ₨ 60
+* **Personal Care Simplified** — ₨ 19
+* **Everyday Beauty Favorites** — ₨ 25
+* **Modern Kitchen Essentials** — ₨ 40
 
 ## 💻 Tech Stack
 * React 18

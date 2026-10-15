@@ -1,40 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 290" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#d4af37" />
-      <stop offset="45%" stop-color="#c59b3f" />
-      <stop offset="100%" stop-color="#996e1e" />
-    </linearGradient>
-    <linearGradient id="arcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#e4c76b" />
-      <stop offset="50%" stop-color="#c59b3f" />
-      <stop offset="100%" stop-color="#8c6114" />
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D3B066" />
+      <stop offset="100%" stop-color="#8b7224" />
     </linearGradient>
   </defs>
-
-  <!-- Monogram HF -->
-  <g transform="translate(50, 15)">
-    <!-- H letter (Deep Navy) -->
-    <path d="M 35 30 L 72 30 L 72 90 L 140 90 L 140 30 L 177 30 L 177 180 L 140 180 L 140 120 L 72 120 L 72 180 L 35 180 Z" fill="#0c2338"/>
-    
-    <!-- F letter (Gold Gradient) -->
-    <path d="M 177 30 L 260 30 L 260 62 L 210 62 L 210 90 L 250 90 L 250 118 L 210 118 L 210 180 L 177 180 Z" fill="url(#goldGrad)"/>
-    
-    <!-- Dynamic Gold Arc Swoosh -->
-    <path d="M 18 135 C 75 75, 175 42, 262 58 C 235 68, 165 76, 85 124 Z" fill="url(#arcGrad)"/>
-  </g>
-
-  <!-- Brand Typography: HASSAN FARID -->
-  <text x="190" y="235" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="33" font-weight="900" fill="#0c2338" letter-spacing="3.5">
-    HASSAN FARID
-  </text>
-
-  <!-- Subtitle: — LLC — -->
-  <g transform="translate(190, 262)">
-    <line x1="-70" y1="-5" x2="-25" y2="-5" stroke="#c59b3f" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="0" y="0" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="17" font-weight="800" fill="#c59b3f" letter-spacing="4">
-      LLC
-    </text>
-    <line x1="25" y1="-5" x2="70" y2="-5" stroke="#c59b3f" stroke-width="2.5" stroke-linecap="round"/>
-  </g>
+  <rect width="64" height="64" rx="14" fill="#17223A" />
+  <path d="M 32 8 L 54 20 L 54 44 L 32 56 L 10 44 L 10 20 Z" stroke="url(#favGold)" stroke-width="2.5" fill="none" />
+  <text x="32" y="38" text-anchor="middle" font-family="'Montserrat', sans-serif" font-size="16" font-weight="900" fill="url(#favGold)" letter-spacing="1">SBR</text>
+  <circle cx="32" cy="46" r="2.5" fill="#D3B066" />
 </svg>
