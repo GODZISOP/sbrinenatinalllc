@@ -197,7 +197,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Desktop Navigation Links (exact from sbrinternationalsllc.com) */}
+          {/* Desktop Navigation Links: Clean 3-4 main links only */}
           <nav className="desktop-nav">
             <ul className="nav-links">
               <li>
@@ -218,66 +218,18 @@ export default function App() {
               </li>
               <li>
                 <button 
-                  className={`nav-link ${selectedCategory === 'home-kitchen' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('home-kitchen')}
+                  className={`nav-link ${activeTab === 'about' ? 'active' : ''}`}
+                  onClick={() => navigateTo('about')}
                 >
-                  Home & Kitchen
+                  About Us
                 </button>
               </li>
               <li>
                 <button 
-                  className={`nav-link ${selectedCategory === 'beauty' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('beauty')}
+                  className={`nav-link ${activeTab === 'contact' ? 'active' : ''}`}
+                  onClick={() => navigateTo('contact')}
                 >
-                  Beauty
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'personal-care' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('personal-care')}
-                >
-                  Personal Care
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'electronics' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('electronics')}
-                >
-                  Electronics
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'fashion' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('fashion')}
-                >
-                  Fashion
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'health-wellness' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('health-wellness')}
-                >
-                  Health & Wellness
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'best-sellers' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('best-sellers')}
-                >
-                  Best Sellers
-                </button>
-              </li>
-              <li>
-                <button 
-                  className={`nav-link ${selectedCategory === 'new-arrivals' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick('new-arrivals')}
-                >
-                  New Arrivals
+                  Contact Us
                 </button>
               </li>
             </ul>
@@ -317,7 +269,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* LOWER TIER: THE BLUE LINE (PRODUCTS & CATEGORIES BAR) */}
+        {/* LOWER TIER: THE BLUE/DARK CATEGORIES BAR */}
         <div className="products-blue-bar">
           <div className="blue-bar-content">
             {/* All Products master pill */}
@@ -348,7 +300,7 @@ export default function App() {
               })}
             </div>
 
-            {/* Right side quick contact & direct trading desk info */}
+            {/* Right side quick contact & brand perk */}
             <div className="blue-bar-perks">
               <span className="blue-perk-item">
                 <Truck size={14} />
