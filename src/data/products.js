@@ -122,7 +122,7 @@ export const products = [
     category: 'fashion',
     categoryName: 'Fashion & Wellness',
     sku: 'SBR-STY-047',
-    price: '₨ 45',
+    price: '$45',
     priceNumeric: 45,
     packSize: 'Standard Retail Box',
     availability: 'In Stock (Ready to Ship)',
@@ -143,9 +143,9 @@ export const products = [
       'Fast, reliable packaging and dispatch'
     ],
     tiers: [
-      { range: '1 - 10 Units', price: '₨ 45', discount: 'Retail Price' },
-      { range: '11 - 50 Units', price: '₨ 39', discount: '13% Volume Discount' },
-      { range: '51+ Units', price: '₨ 34', discount: '24% Bulk Tier' }
+      { range: '1 - 10 Units', price: '$45', discount: 'Retail Price' },
+      { range: '11 - 50 Units', price: '$39', discount: '13% Volume Discount' },
+      { range: '51+ Units', price: '$34', discount: '24% Bulk Tier' }
     ],
     specs: [
       { label: 'Category', value: 'Fashion & Wellness' },
@@ -161,7 +161,7 @@ export const products = [
     category: 'electronics',
     categoryName: 'Electronics',
     sku: 'SBR-TCH-045',
-    price: '₨ 60',
+    price: '$60',
     priceNumeric: 60,
     packSize: 'Rigid Presentation Box',
     availability: 'In Stock (Ready to Ship)',
@@ -182,9 +182,9 @@ export const products = [
       'Guaranteed quality from SBR Internationals LLC'
     ],
     tiers: [
-      { range: '1 - 10 Units', price: '₨ 60', discount: 'Retail Price' },
-      { range: '11 - 50 Units', price: '₨ 52', discount: '13% Volume Discount' },
-      { range: '51+ Units', price: '₨ 45', discount: '25% Bulk Tier' }
+      { range: '1 - 10 Units', price: '$60', discount: 'Retail Price' },
+      { range: '11 - 50 Units', price: '$52', discount: '13% Volume Discount' },
+      { range: '51+ Units', price: '$45', discount: '25% Bulk Tier' }
     ],
     specs: [
       { label: 'Category', value: 'Smart Tech & Electronics' },
@@ -200,7 +200,7 @@ export const products = [
     category: 'personal-care',
     categoryName: 'Personal Care',
     sku: 'SBR-PCR-043',
-    price: '₨ 19',
+    price: '$19',
     priceNumeric: 19,
     packSize: 'Protective Sealed Pack',
     availability: 'In Stock (Ready to Ship)',
@@ -221,9 +221,9 @@ export const products = [
       'Verified quality standard by SBR Internationals LLC'
     ],
     tiers: [
-      { range: '1 - 15 Units', price: '₨ 19', discount: 'Retail Price' },
-      { range: '16 - 60 Units', price: '₨ 16', discount: '15% Volume Discount' },
-      { range: '61+ Units', price: '₨ 14', discount: '26% Bulk Tier' }
+      { range: '1 - 15 Units', price: '$19', discount: 'Retail Price' },
+      { range: '16 - 60 Units', price: '$16', discount: '15% Volume Discount' },
+      { range: '61+ Units', price: '$14', discount: '26% Bulk Tier' }
     ],
     specs: [
       { label: 'Category', value: 'Personal Care' },
@@ -239,7 +239,7 @@ export const products = [
     category: 'beauty',
     categoryName: 'Beauty & Care',
     sku: 'SBR-BTY-041',
-    price: '₨ 25',
+    price: '$25',
     priceNumeric: 25,
     packSize: 'Standard Retail Box',
     availability: 'In Stock (Ready to Ship)',
@@ -260,9 +260,9 @@ export const products = [
       'Directly backed by SBR Internationals LLC quality promise'
     ],
     tiers: [
-      { range: '1 - 12 Units', price: '₨ 25', discount: 'Retail Price' },
-      { range: '13 - 48 Units', price: '₨ 21', discount: '16% Volume Discount' },
-      { range: '49+ Units', price: '₨ 18', discount: '28% Bulk Tier' }
+      { range: '1 - 12 Units', price: '$25', discount: 'Retail Price' },
+      { range: '13 - 48 Units', price: '$21', discount: '16% Volume Discount' },
+      { range: '49+ Units', price: '$18', discount: '28% Bulk Tier' }
     ],
     specs: [
       { label: 'Category', value: 'Beauty & Care' },
@@ -278,7 +278,7 @@ export const products = [
     category: 'home-kitchen',
     categoryName: 'Home & Kitchen',
     sku: 'SBR-KTN-039',
-    price: '₨ 40',
+    price: '$40',
     priceNumeric: 40,
     packSize: 'Master Gift Box',
     availability: 'In Stock (Ready to Ship)',
@@ -299,9 +299,9 @@ export const products = [
       'Packaged in an elegant SBR Internationals presentation box'
     ],
     tiers: [
-      { range: '1 - 10 Units', price: '₨ 40', discount: 'Retail Price' },
-      { range: '11 - 50 Units', price: '₨ 34', discount: '15% Volume Discount' },
-      { range: '51+ Units', price: '₨ 29', discount: '27% Bulk Tier' }
+      { range: '1 - 10 Units', price: '$40', discount: 'Retail Price' },
+      { range: '11 - 50 Units', price: '$34', discount: '15% Volume Discount' },
+      { range: '51+ Units', price: '$29', discount: '27% Bulk Tier' }
     ],
     specs: [
       { label: 'Category', value: 'Home & Kitchen' },

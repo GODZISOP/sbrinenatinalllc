@@ -24,11 +24,11 @@ Official digital showcase and online store for **SBR Internationals LLC** ([sbri
 8. **New Arrivals**
 
 ## 📦 Featured Products
-* **Style And Wellness Picks** — ₨ 45
-* **Smart Tech For Living** — ₨ 60
-* **Personal Care Simplified** — ₨ 19
-* **Everyday Beauty Favorites** — ₨ 25
-* **Modern Kitchen Essentials** — ₨ 40
+* **Style And Wellness Picks** — $45
+* **Smart Tech For Living** — $60
+* **Personal Care Simplified** — $19
+* **Everyday Beauty Favorites** — $25
+* **Modern Kitchen Essentials** — $40
 
 ## 💻 Tech Stack
 * React 18

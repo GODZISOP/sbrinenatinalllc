@@ -517,65 +517,9 @@ export default function App() {
           {/* FEATURED PRODUCTS (EXACT FROM SBR INTERNATIONALS LLC) */}
           <section id="featured-products-section" className="section-wrapper featured-section" style={{ padding: '60px 24px 80px' }}>
             <div className="section-header-center" style={{ textAlign: 'center', marginBottom: '40px' }}>
-              <div style={{ textTransform: 'uppercase', fontSize: '14px', fontWeight: '600', letterSpacing: '2px', color: '#8b7224', marginBottom: '8px' }}>
-                Verified Selection
-              </div>
               <h2 className="section-heading-clean" style={{ fontSize: '2.4rem', fontWeight: '800', color: '#17223A' }}>
                 Featured Products
               </h2>
-              <p style={{ color: '#64748b', maxWidth: '580px', margin: '10px auto 0', fontSize: '1rem' }}>
-                Explore authentic merchandise directly available at SBR Internationals LLC.
-              </p>
-            </div>
-
-            {/* Filter pills & search */}
-            <div style={{ maxWidth: '1280px', margin: '0 auto 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => setSelectedCategory('all')}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '50px',
-                    border: selectedCategory === 'all' ? '2px solid #8b7224' : '1px solid #cbd5e1',
-                    background: selectedCategory === 'all' ? '#17223A' : '#ffffff',
-                    color: selectedCategory === 'all' ? '#D3B066' : '#475569',
-                    fontWeight: '600',
-                    fontSize: '0.88rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  All ({products.length})
-                </button>
-                {categories.map(c => (
-                  <button 
-                    key={c.id}
-                    onClick={() => setSelectedCategory(c.id)}
-                    style={{
-                      padding: '8px 18px',
-                      borderRadius: '50px',
-                      border: selectedCategory === c.id ? '2px solid #8b7224' : '1px solid #cbd5e1',
-                      background: selectedCategory === c.id ? '#17223A' : '#ffffff',
-                      color: selectedCategory === c.id ? '#D3B066' : '#475569',
-                      fontWeight: '600',
-                      fontSize: '0.88rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', borderRadius: '50px', padding: '8px 16px', border: '1px solid #cbd5e1', minWidth: '240px' }}>
-                <Search size={16} color="#94a3b8" style={{ marginRight: '8px' }} />
-                <input 
-                  type="text" 
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem', color: '#17223A' }}
-                />
-              </div>
             </div>
 
             {/* Products Grid */}
@@ -1068,7 +1012,7 @@ export default function App() {
                     </div>
 
                     <div className="subtotal-preview">
-                      Subtotal: <strong>₨ {(activeProduct.priceNumeric * detailQuantity).toLocaleString()}</strong>
+                      Subtotal: <strong>${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}</strong>
                     </div>
                   </div>
 
@@ -1082,7 +1026,7 @@ export default function App() {
                     </button>
 
                     <a 
-                      href={`https://wa.me/+13076677525?text=${encodeURIComponent(`Hello SBR Internationals LLC, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: ₨ ${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
+                      href={`https://wa.me/+13076677525?text=${encodeURIComponent(`Hello SBR Internationals LLC, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: $${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn-detail-whatsapp"
@@ -1619,7 +1563,7 @@ export default function App() {
                           </div>
 
                           <div className="cart-item-line-total">
-                            ₨ {(item.product.priceNumeric * item.quantity).toLocaleString()}
+                            ${(item.product.priceNumeric * item.quantity).toLocaleString()}
                           </div>
 
                           <button 
@@ -1646,7 +1590,7 @@ export default function App() {
                   </div>
                   <div className="summary-row subtotal">
                     <span>Subtotal:</span>
-                    <strong className="summary-amount">₨ {cartSubtotal.toLocaleString()}</strong>
+                    <strong className="summary-amount">${cartSubtotal.toLocaleString()}</strong>
                   </div>
                   <p className="summary-note">Shipping and taxes confirmed upon order placement.</p>
                 </div>
@@ -1655,8 +1599,8 @@ export default function App() {
                   <a 
                     href={`https://wa.me/+13076677525?text=${encodeURIComponent(
                       `Hello SBR Internationals LLC, I would like to order:\n\n` +
-                      cart.map(i => `• ${i.product.name} (SKU: ${i.product.sku}) - Qty: ${i.quantity} x ${i.product.price} = ₨ ${(i.product.priceNumeric * i.quantity).toLocaleString()}`).join('\n') +
-                      `\n\nTotal Estimated: ₨ ${cartSubtotal.toLocaleString()}\nTotal Items: ${totalCartItems}`
+                      cart.map(i => `• ${i.product.name} (SKU: ${i.product.sku}) - Qty: ${i.quantity} x ${i.product.price} = $${(i.product.priceNumeric * i.quantity).toLocaleString()}`).join('\n') +
+                      `\n\nTotal Estimated: $${cartSubtotal.toLocaleString()}\nTotal Items: ${totalCartItems}`
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -1745,7 +1689,7 @@ export default function App() {
               <>
                 <h3 className="modal-title">Order Checkout</h3>
                 <p className="modal-subtitle">
-                  Submitting order for: <strong>{totalCartItems} units • Total: ₨ {cartSubtotal.toLocaleString()}</strong>
+                  Submitting order for: <strong>{totalCartItems} units • Total: ${cartSubtotal.toLocaleString()}</strong>
                 </p>
                 <form onSubmit={handleFormSubmit} className="modal-form">
                   <div className="form-group">
@@ -1769,7 +1713,7 @@ export default function App() {
                     <textarea rows={2} placeholder="Optional delivery instructions..." className="form-textarea"></textarea>
                   </div>
                   <button type="submit" className="btn-submit-modal" style={{ background: '#17223A', color: '#D3B066' }}>
-                    Confirm & Place Order (₨ {cartSubtotal.toLocaleString()})
+                    Confirm & Place Order (${cartSubtotal.toLocaleString()})
                   </button>
                 </form>
               </>
