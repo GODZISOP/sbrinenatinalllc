@@ -227,12 +227,12 @@ body {
 }
 
 /* ==========================================================================
-   LOWER TIER: THE BLUE LINE (PRODUCTS & CATEGORIES SUB-BAR)
+   LOWER TIER: THE SBR NAVY & GOLD CATEGORIES SUB-BAR (BLUE PATTI)
    ========================================================================== */
 .products-blue-bar {
-  background: linear-gradient(90deg, #1c140d 0%, #241b14 50%, #2e231b 100%);
+  background: #17223A;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 2px solid #8c5f24;
+  border-bottom: 2px solid #8b7224;
   padding: 6px 32px;
   position: relative;
 }
@@ -275,7 +275,7 @@ body {
   font-family: inherit;
   font-size: 0.84rem;
   font-weight: 500;
-  padding: 6px 14px;
+  padding: 5px 13px;
   border-radius: 20px;
   cursor: pointer;
   display: inline-flex;
@@ -292,11 +292,11 @@ body {
 }
 
 .blue-cat-btn.active {
-  background: #1e7087;
+  background: #8b7224;
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: #D3B066;
 }
 
 .all-cat-btn {
@@ -312,13 +312,13 @@ body {
 }
 
 .all-cat-btn.active {
-  background: #1e7087;
-  border-color: #38bdf8;
+  background: #8b7224;
+  border-color: #D3B066;
   color: #ffffff;
 }
 
 .blue-count-pill {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -351,7 +351,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #93c5fd;
+  color: #D3B066;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
