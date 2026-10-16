@@ -191,7 +191,7 @@ export default function App() {
         <div className="main-nav">
           <div className="nav-brand" onClick={() => navigateTo('home')} style={{ cursor: 'pointer' }}>
             <img src={logoImg} alt="SBR Internationals LLC Logo" className="brand-logo-img" />
-            <div>
+            <div className="nav-brand-text">
               <div className="brand-title">{companyInfo.name}</div>
               <div className="brand-subtitle">{companyInfo.tagline} • Quality For Life</div>
             </div>
@@ -260,11 +260,11 @@ export default function App() {
             </a>
 
             <button 
-              className="mobile-toggle-btn"
+              className={`mobile-toggle-btn ${mobileMenuOpen ? 'active' : ''}`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
             >
-              <MenuIcon size={20} />
+              {mobileMenuOpen ? <X size={22} /> : <MenuIcon size={22} />}
             </button>
           </div>
         </div>
@@ -316,7 +316,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* MOBILE MENU ACCORDION */}
+      {/* MOBILE MENU FULL WIDTH DROPDOWN */}
       {mobileMenuOpen && (
         <div className="mobile-nav-drawer">
           <div className="mobile-drawer-section">
@@ -339,8 +339,10 @@ export default function App() {
             <div className="mobile-section-label">Navigation</div>
             {[
               { key: 'home', label: 'Home' },
-              { key: 'shop', label: 'Shop' },
               { key: 'about', label: 'About Us' },
+              { key: 'business', label: 'Our Business' },
+              { key: 'categories', label: 'Product Categories' },
+              { key: 'shop', label: 'Shop All' },
               { key: 'contact', label: 'Contact Us' }
             ].map(item => (
               <button
@@ -348,42 +350,47 @@ export default function App() {
                 onClick={() => navigateTo(item.key)}
                 className={`mobile-nav-link ${activeTab === item.key ? 'active' : ''}`}
               >
-                {item.label}
+                <span>{item.label}</span>
+                <ArrowRight size={15} color="#94a3b8" />
               </button>
             ))}
           </div>
 
           <div className="mobile-drawer-section">
-            <div className="mobile-section-label">Categories</div>
+            <div className="mobile-section-label">Product Categories</div>
             <button
               onClick={() => handleCategoryClick('all')}
-              className={`mobile-nav-link ${selectedCategory === 'all' && activeTab === 'home' ? 'active' : ''}`}
+              className={`mobile-nav-link ${selectedCategory === 'all' && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
             >
-              <LayoutGrid size={16} />
-              <span>All Products ({products.length})</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <LayoutGrid size={16} />
+                <span>All Products</span>
+              </span>
+              <span className="blue-count-pill" style={{ color: '#0f2a3a', background: '#e2e8f0' }}>{products.length}</span>
             </button>
             {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat.id)}
-                className={`mobile-nav-link ${selectedCategory === cat.id && activeTab === 'home' ? 'active' : ''}`}
+                className={`mobile-nav-link ${selectedCategory === cat.id && (activeTab === 'home' || activeTab === 'shop') ? 'active' : ''}`}
               >
                 <span>{cat.name}</span>
+                <ArrowRight size={14} color="#94a3b8" />
               </button>
             ))}
           </div>
 
           <div className="mobile-drawer-footer">
-            <a 
-              href={companyInfo.whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
+            <button 
               className="btn-hero-primary"
-              style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}
+              style={{ width: '100%', justifyContent: 'center', padding: '13px' }}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleOpenPartner('partner');
+              }}
             >
-              <MessageSquare size={16} />
-              <span>WhatsApp Us: {companyInfo.phone}</span>
-            </a>
+              Partner With Us
+            </button>
           </div>
         </div>
       )}
