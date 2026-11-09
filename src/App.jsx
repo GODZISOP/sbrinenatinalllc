@@ -707,7 +707,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>Direct Support</h4>
-                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>Connect directly with our desk on WhatsApp at (+1) 3076677525.</p>
+                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>Connect directly with our desk on WhatsApp at (+966) 59 030 3711.</p>
                 </div>
               </div>
             </div>
@@ -1033,7 +1033,7 @@ export default function App() {
                     </button>
 
                     <a 
-                      href={`https://wa.me/+13076677525?text=${encodeURIComponent(`Hello SBR Internationals LLC, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: $${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
+                      href={`https://wa.me/966590303711?text=${encodeURIComponent(`Hello SBR Internationals LLC, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: $${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn-detail-whatsapp"
@@ -1604,7 +1604,7 @@ export default function App() {
 
                 <div className="cart-footer-actions">
                   <a 
-                    href={`https://wa.me/+13076677525?text=${encodeURIComponent(
+                    href={`https://wa.me/966590303711?text=${encodeURIComponent(
                       `Hello SBR Internationals LLC, I would like to order:\n\n` +
                       cart.map(i => `• ${i.product.name} (SKU: ${i.product.sku}) - Qty: ${i.quantity} x ${i.product.price} = $${(i.product.priceNumeric * i.quantity).toLocaleString()}`).join('\n') +
                       `\n\nTotal Estimated: $${cartSubtotal.toLocaleString()}\nTotal Items: ${totalCartItems}`
@@ -1675,7 +1675,7 @@ export default function App() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">Phone Number / WhatsApp *</label>
-                    <input type="tel" required placeholder="(+1) 3076677525" className="form-input" />
+                    <input type="tel" required placeholder="(+966) 59 030 3711" className="form-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Requested Quantity</label>

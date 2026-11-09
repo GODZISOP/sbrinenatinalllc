@@ -7,9 +7,9 @@ export const companyInfo = {
   heroSubtitle: 'Quality essentials for home, beauty, fashion, wellness, and everyday living.',
   heroBgImage: 'https://images.unsplash.com/photo-1598532108985-5413981e30b7?q=85&w=1920&h=800&fit=crop',
   email: 'info@sbrinternationalsllc.com',
-  phone: '(+1) 3076677525',
-  phoneRaw: '+13076677525',
-  whatsappUrl: 'https://wa.me/+13076677525',
+  phone: '(+966) 59 030 3711',
+  phoneRaw: '+966590303711',
+  whatsappUrl: 'https://wa.me/966590303711',
   address: '30 N Gould St # 68479 Sheridan, WY 82801, United States',
   website: 'https://sbrinternationalsllc.com',
   copyright: '© 2026 SBR Internationals LLC. All rights reserved.',
@@ -17,7 +17,7 @@ export const companyInfo = {
     facebook: 'https://facebook.com',
     instagram: 'https://instagram.com',
     tiktok: 'https://tiktok.com',
-    whatsapp: 'https://wa.me/+13076677525'
+    whatsapp: 'https://wa.me/966590303711'
   }
 };
 

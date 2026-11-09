@@ -8,8 +8,8 @@ Official digital showcase and online store for **SBR Internationals LLC** ([sbri
 * **Tagline:** Quality essentials for home, beauty, fashion, wellness, and everyday living.
 * **Primary Contacts:**
   * **Email:** info@sbrinternationalsllc.com
-  * **Phone:** (+1) 3076677525
-  * **WhatsApp:** [Instant Chat](https://wa.me/+13076677525)
+  * **Phone:** (+966) 59 030 3711
+  * **WhatsApp:** [Instant Chat](https://wa.me/966590303711)
   * **Registered Address:** 30 N Gould St # 68479 Sheridan, WY 82801, United States
   * **Website:** [https://sbrinternationalsllc.com/](https://sbrinternationalsllc.com/)
 
