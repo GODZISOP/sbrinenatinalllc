@@ -4,12 +4,118 @@ import {
   Send, ExternalLink, ShieldCheck, Truck, Award,
   X, MessageSquare, Layers, Building2, ShoppingCart, Menu as MenuIcon,
   Plus, Minus, Trash2, ShoppingBag, Eye, ArrowLeft, Check,
-  LayoutGrid, Sparkles, ChevronDown, Package, Star
+  LayoutGrid, Sparkles, ChevronDown, Package, Star, Globe
 } from 'lucide-react';
-import { companyInfo, curatedCategories, categories, products } from './data/products';
+import { companyInfo as rawCompanyInfo, curatedCategories, categories, products } from './data/products';
+import { siteConfig as defaultSiteConfig } from './data/siteConfig';
+import { AdminPanel, useActiveSiteConfig } from './admin';
 import logoImg from './images/sbr-logo.svg';
 
+function isAdminHostname() {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname.toLowerCase();
+  return (
+    host.startsWith('admin.') ||
+    host.includes('-admin.') ||
+    host.includes('admin-') ||
+    import.meta.env.VITE_ADMIN_ONLY === 'true'
+  );
+}
+
+function checkIsAdminRoute() {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  const cleanPath = window.location.pathname.replace(/\/+$/, '').toLowerCase();
+  const cleanHash = window.location.hash.toLowerCase();
+  if (
+    cleanPath.endsWith('/admin') ||
+    cleanHash.startsWith('#admin') ||
+    cleanHash.startsWith('#/admin') ||
+    params.has('admin')
+  ) {
+    return true;
+  }
+  if (isAdminHostname() && !params.has('preview')) {
+    return true;
+  }
+  return false;
+}
+
 export default function App() {
+  const { config: dynamicConfig, refresh: refreshActiveSite } = useActiveSiteConfig();
+  const siteConfig = dynamicConfig || defaultSiteConfig;
+  const companyInfo = {
+    ...rawCompanyInfo,
+    name: siteConfig.companyName || rawCompanyInfo.name,
+    legalName: siteConfig.legalName || 'SBR INTERNATIONALS LLC',
+    tagline: siteConfig.tagline || rawCompanyInfo.tagline,
+    heroTitle: siteConfig.heroTitle || rawCompanyInfo.heroTitle,
+    heroSubtitle: siteConfig.heroSubtitle || rawCompanyInfo.heroSubtitle,
+    email: siteConfig.email || rawCompanyInfo.email,
+    phone: siteConfig.phoneDirect || siteConfig.phonePrimary || rawCompanyInfo.phone,
+    phoneRaw: siteConfig.phoneDirectTel || siteConfig.phonePrimaryTel || rawCompanyInfo.phoneRaw,
+    whatsappNumber: siteConfig.whatsappNumber || '966590303711',
+    whatsappUrl: `https://wa.me/${siteConfig.whatsappNumber || '966590303711'}`,
+    address: siteConfig.address?.full || rawCompanyInfo.address,
+    website: siteConfig.footer?.websiteUrl || (siteConfig.website ? `https://${siteConfig.website.replace(/^https?:\/\//, '')}` : rawCompanyInfo.website),
+    websiteDisplay: siteConfig.website || 'www.sbrinternationalsllc.com',
+    socials: {
+      ...rawCompanyInfo.socials,
+      whatsapp: `https://wa.me/${siteConfig.whatsappNumber || '966590303711'}`,
+    },
+  };
+  const [isAdminMode, setIsAdminMode] = useState(checkIsAdminRoute);
+
+  useEffect(() => {
+    const syncRoute = () => setIsAdminMode(checkIsAdminRoute());
+    window.addEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    return () => {
+      window.removeEventListener('popstate', syncRoute);
+      window.removeEventListener('hashchange', syncRoute);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (siteConfig.theme) {
+      if (siteConfig.theme.primaryNavy) root.style.setProperty('--primary-navy', siteConfig.theme.primaryNavy);
+      if (siteConfig.theme.secondaryTeal) root.style.setProperty('--secondary-teal', siteConfig.theme.secondaryTeal);
+      const accent = siteConfig.theme.accentTeal || siteConfig.theme.accentGold;
+      if (accent) {
+        root.style.setProperty('--accent-teal', accent);
+        root.style.setProperty('--accent-gold', siteConfig.theme.accentGold || accent);
+      }
+      if (siteConfig.theme.accentHover) {
+        root.style.setProperty('--accent-teal-hover', siteConfig.theme.accentHover);
+      }
+      if (siteConfig.theme.bgLight) {
+        root.style.setProperty('--bg-light', siteConfig.theme.bgLight);
+      }
+    }
+    if (companyInfo.name) {
+      document.title = companyInfo.name + (companyInfo.tagline ? ' | ' + companyInfo.tagline : '');
+    }
+    const faviconLink = document.querySelector("link[rel*='icon']");
+    if (faviconLink && siteConfig.logo) {
+      faviconLink.href = siteConfig.logo;
+    }
+  }, [siteConfig, isAdminMode]);
+
+  const exitAdmin = () => {
+    refreshActiveSite();
+    if (window.location.pathname.replace(/\/+$/, '').toLowerCase().endsWith('/admin')) {
+      window.history.pushState({}, '', '/');
+    } else if (window.location.hash.toLowerCase().includes('admin')) {
+      window.location.hash = '';
+    }
+    if (window.location.search.includes('admin')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('admin');
+      window.history.replaceState({}, '', url.toString());
+    }
+    setIsAdminMode(false);
+  };
   const [activeTab, setActiveTab] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -183,6 +289,10 @@ export default function App() {
     }, 60);
   };
 
+  if (isAdminMode) {
+    return <AdminPanel onExitAdmin={exitAdmin} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f7f9] text-[#1e293b]">
       {/* 2-TIER MODERN STICKY HEADER */}
@@ -190,7 +300,7 @@ export default function App() {
         {/* UPPER TIER: MAIN NAVIGATION */}
         <div className="main-nav">
           <div className="nav-brand" onClick={() => navigateTo('home')} style={{ cursor: 'pointer' }}>
-            <img src={logoImg} alt="SBR Internationals LLC Logo" className="brand-logo-img" />
+            <img src={siteConfig.logo || logoImg} alt={`${companyInfo.name} Logo`} className="brand-logo-img" />
             <div className="nav-brand-text">
               <div className="brand-title">{companyInfo.name}</div>
               <div className="brand-subtitle">{companyInfo.tagline} • Quality For Life</div>
@@ -677,7 +787,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>Shop With Confidence</h4>
-                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>100% genuine merchandise verified by SBR Internationals LLC standards.</p>
+                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>100% genuine merchandise verified by {companyInfo.name} standards.</p>
                 </div>
               </div>
 
@@ -707,7 +817,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>Direct Support</h4>
-                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>Connect directly with our desk on WhatsApp at (+966) 59 030 3711.</p>
+                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: 1.6 }}>Connect directly with our desk on WhatsApp at {companyInfo.phone}.</p>
                 </div>
               </div>
             </div>
@@ -728,7 +838,7 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
               <div>
                 <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#17223A', marginBottom: '6px' }}>Catalog Shop</h1>
-                <p style={{ color: '#64748b' }}>Showing all {filteredProducts.length} verified products available from SBR Internationals LLC.</p>
+                <p style={{ color: '#64748b' }}>Showing all {filteredProducts.length} verified products available from {companyInfo.name}.</p>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -896,7 +1006,7 @@ export default function App() {
                   <div className="detail-badge-float">{activeProduct.categoryName}</div>
                   <div className="detail-verified-badge">
                     <ShieldCheck size={16} />
-                    <span>SBR Internationals LLC Certified</span>
+                    <span>{companyInfo.name} Certified</span>
                   </div>
                 </div>
 
@@ -906,21 +1016,21 @@ export default function App() {
                     <Truck size={18} className="assurance-icon" />
                     <div>
                       <strong>Fast Quality Dispatch</strong>
-                      <span>Dispatched via Sheridan, WY Registered Fulfillment</span>
+                      <span>{siteConfig.hubs?.originText || 'Dispatched via Sheridan, WY Registered Fulfillment'}</span>
                     </div>
                   </div>
                   <div className="assurance-item">
                     <Award size={18} className="assurance-icon" />
                     <div>
                       <strong>Quality Inspected</strong>
-                      <span>Inspected by SBR Internationals LLC</span>
+                      <span>Inspected by {companyInfo.name}</span>
                     </div>
                   </div>
                   <div className="assurance-item">
                     <Building2 size={18} className="assurance-icon" />
                     <div>
-                      <strong>Wyoming Registered Entity</strong>
-                      <span>Official Registration: 30 N Gould St # 68479</span>
+                      <strong>{siteConfig.address?.jurisdiction || 'Wyoming Registered Entity'}</strong>
+                      <span>Official Registration: {siteConfig.address?.line1 || '30 N Gould St # 68479'}</span>
                     </div>
                   </div>
                 </div>
@@ -1033,7 +1143,7 @@ export default function App() {
                     </button>
 
                     <a 
-                      href={`https://wa.me/966590303711?text=${encodeURIComponent(`Hello SBR Internationals LLC, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: $${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
+                      href={`https://wa.me/${companyInfo.whatsappNumber}?text=${encodeURIComponent(`Hello ${companyInfo.name}, I want to order ${detailQuantity}x ${activeProduct.name} (SKU: ${activeProduct.sku}, Total: ${siteConfig.currencySymbol || '$'}${(activeProduct.priceNumeric * detailQuantity).toLocaleString()}).`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn-detail-whatsapp"
@@ -1099,7 +1209,7 @@ export default function App() {
                     <div className="tab-features-grid">
                       <div className="tab-feature-card">
                         <h4>Authentic Quality Standard</h4>
-                        <p>Directly inspected and curated under SBR Internationals LLC quality guidelines for everyday elegance, longevity, and consumer trust.</p>
+                        <p>Directly inspected and curated under {companyInfo.name} quality guidelines for everyday elegance, longevity, and consumer trust.</p>
                       </div>
                       <div className="tab-feature-card">
                         <h4>Packaging & Presentation</h4>
@@ -1139,7 +1249,7 @@ export default function App() {
                       </div>
                       <div className="ship-card">
                         <h4>Registered Facility</h4>
-                        <p>Dispatched from our registered facility at 30 N Gould St # 68479 Sheridan, WY 82801, USA.</p>
+                        <p>{siteConfig.hubs?.dispatchNote || `Dispatched from our registered facility at ${companyInfo.address}.`}</p>
                       </div>
                       <div className="ship-card">
                         <h4>Customer Protection</h4>
@@ -1159,7 +1269,7 @@ export default function App() {
             <div className="detail-related-section">
               <div className="related-header">
                 <span className="section-tag">MORE ESSENTIALS</span>
-                <h2 className="related-title">Other Products from SBR Internationals LLC</h2>
+                <h2 className="related-title">Other Products from {companyInfo.name}</h2>
               </div>
 
               <div className="products-grid">
@@ -1228,12 +1338,12 @@ export default function App() {
         <div className="section-wrapper" style={{ padding: '60px 24px' }}>
           <div style={{ maxWidth: '880px', margin: '0 auto', background: '#fff', padding: '48px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
             <span className="section-tag" style={{ color: '#8b7224' }}>COMPANY OVERVIEW</span>
-            <h1 className="section-title" style={{ marginBottom: '20px', color: '#17223A' }}>About SBR Internationals LLC</h1>
+            <h1 className="section-title" style={{ marginBottom: '20px', color: '#17223A' }}>About {companyInfo.name}</h1>
             <p style={{ fontSize: '1.08rem', color: '#334155', lineHeight: 1.8, marginBottom: '20px' }}>
-              <strong>SBR Internationals LLC</strong> is a premier company dedicated to curating quality products across home and kitchen, beauty, personal care, electronics, fashion, and wellness. Operating from our registered headquarters at <strong>30 N Gould St # 68479 Sheridan, WY 82801</strong>.
+              <strong>{companyInfo.name}</strong> is dedicated to curating quality products across home and kitchen, beauty, personal care, electronics, fashion, and wellness, operating from our registered headquarters at <strong>{companyInfo.address}</strong>.
             </p>
             <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.8, marginBottom: '24px' }}>
-              Our philosophy — <em>Quality For Life</em> — drives our commitment to offering everyday essentials that combine functionality, timeless style, and dependable customer service. Whether you are shopping for your personal sanctuary or seeking bulk supply solutions, SBR Internationals LLC delivers excellence at every touchpoint.
+              {siteConfig.about?.mission || `Our philosophy drives our commitment to offering everyday essentials that combine functionality, timeless style, and dependable customer service. Whether you are shopping for your personal sanctuary or seeking bulk supply solutions, ${companyInfo.name} delivers excellence at every touchpoint.`}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', margin: '36px 0' }}>
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
@@ -1268,7 +1378,7 @@ export default function App() {
           <div style={{ maxWidth: '960px', margin: '0 auto' }}>
             <div className="section-header-center" style={{ textAlign: 'center', marginBottom: '36px' }}>
               <span className="section-tag" style={{ color: '#8b7224' }}>GET IN TOUCH</span>
-              <h1 className="section-title" style={{ color: '#17223A' }}>Contact SBR Internationals LLC</h1>
+              <h1 className="section-title" style={{ color: '#17223A' }}>Contact {companyInfo.name}</h1>
               <p style={{ color: '#64748b', maxWidth: '600px', margin: '10px auto 0' }}>
                 We are at your service for product inquiries, customer support, or partnership discussions.
               </p>
@@ -1281,9 +1391,40 @@ export default function App() {
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', fontSize: '0.95rem' }}>
                     <div style={{ display: 'flex', gap: '14px' }}>
+                      <Building2 size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Company Name</div>
+                        <div style={{ color: '#fff', fontWeight: '600' }}>{companyInfo.name}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <Phone size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Phone Number</div>
+                        <div><a href={`tel:${companyInfo.phoneRaw}`} style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}>{companyInfo.phone}</a></div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <MessageSquare size={20} color="#25d366" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>WhatsApp Number</div>
+                        <a 
+                          href={companyInfo.whatsappUrl}
+                          target="_blank" 
+                          rel="noreferrer"
+                          style={{ color: '#25d366', fontWeight: '700', textDecoration: 'none' }}
+                        >
+                          {siteConfig.whatsappDisplay || companyInfo.phone} (Instant Chat)
+                        </a>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '14px' }}>
                       <Mail size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Email</div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Email Address</div>
                         <a href={`mailto:${companyInfo.email}`} style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}>
                           {companyInfo.email}
                         </a>
@@ -1291,32 +1432,19 @@ export default function App() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '14px' }}>
-                      <Phone size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Phone</div>
-                        <div><a href={`tel:${companyInfo.phoneRaw}`} style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}>{companyInfo.phone}</a></div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '14px' }}>
                       <MapPin size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Official Address</div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Registered Address</div>
                         <div style={{ color: '#fff', fontWeight: '600' }}>{companyInfo.address}</div>
                       </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '14px' }}>
-                      <MessageSquare size={20} color="#25d366" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <Globe size={20} color="#D3B066" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>WhatsApp Direct</div>
-                        <a 
-                          href={companyInfo.whatsappUrl}
-                          target="_blank" 
-                          rel="noreferrer"
-                          style={{ color: '#25d366', fontWeight: '700', textDecoration: 'none' }}
-                        >
-                          {companyInfo.phone} (Instant Chat)
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase' }}>Official Website</div>
+                        <a href={companyInfo.website} target="_blank" rel="noreferrer" style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}>
+                          {companyInfo.websiteDisplay}
                         </a>
                       </div>
                     </div>
@@ -1359,7 +1487,7 @@ export default function App() {
                 {formSubmitted && (
                   <div style={{ marginTop: '16px', padding: '14px', background: '#ecfdf5', color: '#065f46', borderRadius: '12px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <CheckCircle2 size={20} color="#059669" />
-                    <span>Thank you! Your message has been received by SBR Internationals LLC. We will reply shortly.</span>
+                    <span>Thank you! Your message has been received by {companyInfo.name}. We will reply shortly.</span>
                   </div>
                 )}
               </div>
@@ -1412,14 +1540,30 @@ export default function App() {
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '20px', color: '#ffffff' }}>Contacts</h3>
             <div style={{ marginBottom: '28px', fontSize: '0.95rem', lineHeight: 1.8 }}>
+              <div style={{ fontWeight: '600', color: '#ffffff' }}>
+                {companyInfo.name}
+              </div>
+              <div>
+                <a href={`tel:${companyInfo.phoneRaw}`} style={{ color: '#ffffff', textDecoration: 'none' }}>
+                  {companyInfo.phone}
+                </a>
+              </div>
+              <div>
+                <a href={companyInfo.whatsappUrl} target="_blank" rel="noreferrer" style={{ color: '#4ade80', textDecoration: 'none' }}>
+                  WhatsApp: {siteConfig.whatsappDisplay || companyInfo.phone}
+                </a>
+              </div>
               <div>
                 <a href={`mailto:${companyInfo.email}`} style={{ color: '#ffffff', textDecoration: 'none' }}>
                   {companyInfo.email}
                 </a>
               </div>
+              <div style={{ color: '#e2e8f0' }}>
+                {companyInfo.address}
+              </div>
               <div>
-                <a href={`tel:${companyInfo.phoneRaw}`} style={{ color: '#ffffff', textDecoration: 'none' }}>
-                  {companyInfo.phone}
+                <a href={companyInfo.website} target="_blank" rel="noreferrer" style={{ color: '#ffffff', textDecoration: 'none' }}>
+                  {companyInfo.websiteDisplay}
                 </a>
               </div>
             </div>
@@ -1604,10 +1748,10 @@ export default function App() {
 
                 <div className="cart-footer-actions">
                   <a 
-                    href={`https://wa.me/966590303711?text=${encodeURIComponent(
-                      `Hello SBR Internationals LLC, I would like to order:\n\n` +
-                      cart.map(i => `• ${i.product.name} (SKU: ${i.product.sku}) - Qty: ${i.quantity} x ${i.product.price} = $${(i.product.priceNumeric * i.quantity).toLocaleString()}`).join('\n') +
-                      `\n\nTotal Estimated: $${cartSubtotal.toLocaleString()}\nTotal Items: ${totalCartItems}`
+                    href={`https://wa.me/${companyInfo.whatsappNumber}?text=${encodeURIComponent(
+                      `Hello ${companyInfo.name}, I would like to order:\n\n` +
+                      cart.map(i => `• ${i.product.name} (SKU: ${i.product.sku}) - Qty: ${i.quantity} x ${i.product.price} = ${siteConfig.currencySymbol || '$'}${(i.product.priceNumeric * i.quantity).toLocaleString()}`).join('\n') +
+                      `\n\nTotal Estimated: ${siteConfig.currencySymbol || '$'}${cartSubtotal.toLocaleString()}\nTotal Items: ${totalCartItems}`
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -1675,7 +1819,7 @@ export default function App() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">Phone Number / WhatsApp *</label>
-                    <input type="tel" required placeholder="(+966) 59 030 3711" className="form-input" />
+                    <input type="tel" required placeholder={companyInfo.phone} className="form-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Requested Quantity</label>
@@ -1731,7 +1875,7 @@ export default function App() {
                 <CheckCircle2 size={24} color="#059669" />
                 <div>
                   <strong>Order / Inquiry Dispatched!</strong>
-                  <p style={{ fontSize: '0.85rem' }}>SBR Internationals LLC customer desk will confirm your order and reach out via WhatsApp/email promptly.</p>
+                  <p style={{ fontSize: '0.85rem' }}>{companyInfo.name} customer desk will confirm your order and reach out via WhatsApp/email promptly.</p>
                 </div>
               </div>
             )}
