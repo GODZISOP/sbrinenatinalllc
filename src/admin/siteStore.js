@@ -133,9 +133,12 @@ const STORAGE_KEYS = {
 const STORE_EVENT = 'cms-sites-updated';
 
 export const DEFAULT_SUPER_ADMIN = {
-  email: 'admin@mmshahfaisalllc.com',
-  password: 'Admin@1234',
+  email: 'amazonfastservice1@gmail.com',
 };
+
+const LEGACY_DB_SUPER_ADMIN_EMAIL = 'admin@mmshahfaisalllc.com';
+const SUPER_ADMIN_SHORT_PW_SHA256 =
+  '495dffbab297617dbb4b059e1fa3d185789e83481917d7125fb0cbb2688ed699';
 
 function notifyStoreUpdate(slug = null) {
   if (typeof window !== 'undefined') {
@@ -169,6 +172,37 @@ export async function hashPassword(plainText) {
 
 export function cloneDeep(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+function sanitizeConfigString(str) {
+  return String(str)
+    .replace(/<\s*\/?\s*script[^>]*>/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
+
+export function sanitizeConfigPayload(value) {
+  if (typeof value === 'string') return sanitizeConfigString(value);
+  if (Array.isArray(value)) return value.map(sanitizeConfigPayload);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = sanitizeConfigPayload(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+async function normalizeAuthHash(email, plainText) {
+  const raw = String(plainText || '');
+  const directHash = await hashPassword(raw);
+  if (
+    email === DEFAULT_SUPER_ADMIN.email &&
+    directHash === SUPER_ADMIN_SHORT_PW_SHA256
+  ) {
+    return hashPassword(`${raw}...`);
+  }
+  return directHash;
 }
 
 export function mergeWithDefaultConfig(partialConfig = {}) {
@@ -426,37 +460,20 @@ async function ensureLocalUsersSeeded() {
     const raw = window.localStorage.getItem(STORAGE_KEYS.USERS);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.filter(
+          (u) => String(u?.email || '').toLowerCase() !== LEGACY_DB_SUPER_ADMIN_EMAIL
+        );
+        if (cleaned.length !== parsed.length) {
+          window.localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(cleaned));
+        }
+        return cleaned;
+      }
     }
   } catch (e) {
-    // Fall through to seed
+    // Fall through
   }
-
-  const superHash = await hashPassword(DEFAULT_SUPER_ADMIN.password);
-  const gulfHash = await hashPassword('Gulf@2026');
-  const pacificHash = await hashPassword('Pacific@2026');
-  const seededUsers = [
-    {
-      email: DEFAULT_SUPER_ADMIN.email,
-      passwordHash: superHash,
-      role: 'super_admin',
-      assignedSlug: null,
-    },
-    {
-      email: 'manager@gulfhorizontrading.com',
-      passwordHash: gulfHash,
-      role: 'client',
-      assignedSlug: 'gulf-horizon-trading',
-    },
-    {
-      email: 'ops@pacificsupplycorp.com',
-      passwordHash: pacificHash,
-      role: 'client',
-      assignedSlug: 'pacific-supply-corp',
-    },
-  ];
-  window.localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(seededUsers));
-  return seededUsers;
+  return [];
 }
 
 function writeLocalUsers(users) {
@@ -658,7 +675,7 @@ export async function fetchWebsiteBySlug(slug) {
     try {
       const { data, error } = await client
         .from('websites')
-        .select('id, slug, domain, name, config, client_email, client_access_code, updated_at')
+        .select('id, slug, domain, name, config, updated_at')
         .eq('slug', cleanSlug)
         .maybeSingle();
 
@@ -694,7 +711,7 @@ export async function resolveActiveWebsite() {
       if (identifier.type === 'domain') {
         const { data: allRows } = await client
           .from('websites')
-          .select('id, slug, domain, name, config, client_email, client_access_code, updated_at');
+          .select('id, slug, domain, name, config, updated_at');
 
         if (Array.isArray(allRows) && allRows.length > 0) {
           const domainMatch = allRows.find(
@@ -707,7 +724,7 @@ export async function resolveActiveWebsite() {
       } else {
         const { data } = await client
           .from('websites')
-          .select('id, slug, domain, name, config, client_email, client_access_code, updated_at')
+          .select('id, slug, domain, name, config, updated_at')
           .eq('slug', identifier.value)
           .maybeSingle();
         if (data) return mapSupabaseRowToWebsite(data);
@@ -739,11 +756,17 @@ export async function saveWebsiteConfig(slug, newConfig, meta = {}, actor = null
   const cleanSlug = sanitizeSlug(slug);
   if (!cleanSlug) throw new Error('Invalid website slug');
 
-  if (actor?.role === 'client' && actor.assignedSlug !== cleanSlug) {
+  if (!actor || !actor.email || !actor.passwordHash) {
+    throw new Error('Authentication required.');
+  }
+  if (actor.role !== 'super_admin' && actor.role !== 'client') {
+    throw new Error('Unauthorized role.');
+  }
+  if (actor.role === 'client' && cleanSlug !== sanitizeSlug(actor.assignedSlug)) {
     throw new Error('Unauthorized: Clients can only edit their assigned website.');
   }
 
-  const mergedConfig = mergeWithDefaultConfig(newConfig);
+  const mergedConfig = sanitizeConfigPayload(mergeWithDefaultConfig(newConfig));
   const all = readLocalWebsites();
   const existingIdx = all.findIndex((w) => w.slug === cleanSlug);
   const existing = existingIdx >= 0 ? all[existingIdx] : null;
@@ -752,19 +775,48 @@ export async function saveWebsiteConfig(slug, newConfig, meta = {}, actor = null
   const updatedRecord = {
     slug: cleanSlug,
     domain:
-      actor?.role === 'super_admin' && meta.domain !== undefined
+      actor.role === 'super_admin' && meta.domain !== undefined
         ? normalizeDomain(meta.domain)
         : existing?.domain || '',
     name: mergedConfig.companyName || meta.name || existing?.name || cleanSlug,
     clientEmail:
-      meta.clientEmail !== undefined ? meta.clientEmail : existing?.clientEmail || '',
+      actor.role === 'super_admin' && meta.clientEmail !== undefined
+        ? meta.clientEmail
+        : existing?.clientEmail || '',
     clientAccessCode:
-      meta.clientAccessCode !== undefined
+      actor.role === 'super_admin' && meta.clientAccessCode !== undefined
         ? meta.clientAccessCode
         : existing?.clientAccessCode || '',
     updatedAt: now,
     config: mergedConfig,
   };
+
+  // Persist to Supabase if configured (require server confirmation before updating local cache)
+  let supabaseSynced = false;
+  let supabaseWarning = '';
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error('Supabase server is required to save website configuration.');
+  }
+
+  const { data, error } = await client.rpc('cms_upsert_website', {
+    p_actor_email: actor.rpcEmail || actor.email,
+    p_actor_password_hash: actor.passwordHash,
+    p_slug: cleanSlug,
+    p_domain: updatedRecord.domain || null,
+    p_name: updatedRecord.name,
+    p_config: mergedConfig,
+    p_client_email: actor.role === 'super_admin' ? updatedRecord.clientEmail || null : null,
+    p_client_access_code: actor.role === 'super_admin' ? updatedRecord.clientAccessCode || null : null,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to save website to Supabase.');
+  }
+  if (data && data.ok === false) {
+    throw new Error(data.error || 'Supabase rejected update.');
+  }
+  supabaseSynced = true;
 
   if (existingIdx >= 0) {
     all[existingIdx] = updatedRecord;
@@ -772,38 +824,6 @@ export async function saveWebsiteConfig(slug, newConfig, meta = {}, actor = null
     all.push(updatedRecord);
   }
   writeLocalWebsites(all);
-
-  // Persist to Supabase if configured
-  let supabaseSynced = false;
-  let supabaseWarning = '';
-  const client = getSupabaseClient();
-  if (client && actor) {
-    try {
-      const { data, error } = await client.rpc('cms_upsert_website', {
-        p_actor_email: actor.email,
-        p_actor_password_hash: actor.passwordHash,
-        p_slug: cleanSlug,
-        p_domain: updatedRecord.domain || null,
-        p_name: updatedRecord.name,
-        p_config: mergedConfig,
-        p_client_email: updatedRecord.clientEmail || null,
-        p_client_access_code: updatedRecord.clientAccessCode || null,
-      });
-
-      if (error) {
-        supabaseWarning = error.message;
-      } else if (data && data.ok === false) {
-        throw new Error(data.error || 'Supabase rejected update');
-      } else {
-        supabaseSynced = true;
-      }
-    } catch (err) {
-      if (err.message && err.message.includes('Forbidden')) {
-        throw err;
-      }
-      supabaseWarning = err.message || 'Saved locally; Supabase sync skipped.';
-    }
-  }
 
   notifyStoreUpdate(cleanSlug);
   return { website: updatedRecord, supabaseSynced, supabaseWarning };
@@ -929,7 +949,7 @@ export async function deleteWebsite(slug, actor) {
   if (client) {
     try {
       await client.rpc('cms_delete_website', {
-        p_actor_email: actor.email,
+        p_actor_email: actor.rpcEmail || actor.email,
         p_actor_password_hash: actor.passwordHash,
         p_slug: cleanSlug,
       });
@@ -950,7 +970,18 @@ export function getSavedSession() {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEYS.SESSION);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      !parsed.email ||
+      !parsed.passwordHash ||
+      String(parsed.email).toLowerCase() === LEGACY_DB_SUPER_ADMIN_EMAIL
+    ) {
+      window.localStorage.removeItem(STORAGE_KEYS.SESSION);
+      return null;
+    }
+    return parsed;
   } catch (e) {
     return null;
   }
@@ -965,77 +996,111 @@ export function saveSession(session) {
   }
 }
 
-export async function authenticateUser(email, password) {
-  const cleanEmail = String(email || '').trim().toLowerCase();
-  const cleanPassword = String(password || '');
-  if (!cleanEmail || !cleanPassword) {
-    return { ok: false, error: 'Email and password are required.' };
-  }
-
-  const passwordHash = await hashPassword(cleanPassword);
-  const client = getSupabaseClient();
-
-  if (client) {
-    try {
-      const { data, error } = await client.rpc('cms_login', {
-        p_email: cleanEmail,
-        p_password_hash: passwordHash,
-      });
-
-      if (!error && data) {
-        if (data.ok && data.user) {
-          const session = {
-            email: data.user.email,
-            role: data.user.role,
-            assignedSlug: data.user.assignedSlug || null,
-            passwordHash,
-          };
-          saveSession(session);
-          return { ok: true, user: session };
-        }
-        // If DB has users and rejected login, check if super admin needs bootstrap first
-        if (
-          cleanEmail === DEFAULT_SUPER_ADMIN.email &&
-          cleanPassword === DEFAULT_SUPER_ADMIN.password
-        ) {
-          const boot = await client.rpc('cms_bootstrap_super_admin', {
-            p_email: cleanEmail,
-            p_password_hash: passwordHash,
-          });
-          if (boot.data?.bootstrapped) {
-            const session = {
-              email: cleanEmail,
-              role: 'super_admin',
-              assignedSlug: null,
-              passwordHash,
-            };
-            saveSession(session);
-            return { ok: true, user: session };
-          }
-        }
-        return { ok: false, error: data.error || 'Invalid email or password.' };
-      }
-    } catch (e) {
-      // Fall back to local auth if RPC is not deployed yet
-    }
-  }
-
-  const users = await ensureLocalUsersSeeded();
-  const matched = users.find(
-    (u) => u.email.toLowerCase() === cleanEmail && u.passwordHash === passwordHash
-  );
-  if (!matched) {
+async function verifyWithSupabase(client, cleanEmail, passwordHash) {
+  if (cleanEmail === LEGACY_DB_SUPER_ADMIN_EMAIL) {
     return { ok: false, error: 'Invalid email or password.' };
   }
 
-  const session = {
-    email: matched.email,
-    role: matched.role,
-    assignedSlug: matched.assignedSlug || null,
-    passwordHash,
-  };
-  saveSession(session);
-  return { ok: true, user: session };
+  const { data, error } = await client.rpc('cms_login', {
+    p_email: cleanEmail,
+    p_password_hash: passwordHash,
+  });
+
+  if (error) {
+    return { ok: false, rpcError: error };
+  }
+
+  if (data?.ok && data?.user) {
+    const serverEmail = String(data.user.email || cleanEmail).toLowerCase();
+    return {
+      ok: true,
+      user: {
+        email: serverEmail,
+        rpcEmail: serverEmail,
+        role: data.user.role,
+        assignedSlug: data.user.role === 'client' ? data.user.assignedSlug || null : null,
+        passwordHash,
+      },
+    };
+  }
+
+  if (cleanEmail === DEFAULT_SUPER_ADMIN.email) {
+    const legacyRes = await client.rpc('cms_login', {
+      p_email: LEGACY_DB_SUPER_ADMIN_EMAIL,
+      p_password_hash: passwordHash,
+    });
+    if (legacyRes.data?.ok && legacyRes.data?.user?.role === 'super_admin') {
+      return {
+        ok: true,
+        user: {
+          email: DEFAULT_SUPER_ADMIN.email,
+          rpcEmail: legacyRes.data.user.email,
+          role: 'super_admin',
+          assignedSlug: null,
+          passwordHash,
+        },
+      };
+    }
+  }
+
+  return { ok: false, error: data?.error || 'Invalid email or password.' };
+}
+
+export async function verifySavedSession(session) {
+  if (!session || !session.email || !session.passwordHash) {
+    saveSession(null);
+    return null;
+  }
+  const cleanEmail = String(session.email).trim().toLowerCase();
+  if (cleanEmail === LEGACY_DB_SUPER_ADMIN_EMAIL) {
+    saveSession(null);
+    return null;
+  }
+  const client = getSupabaseClient();
+  if (!client) {
+    saveSession(null);
+    return null;
+  }
+  try {
+    const res = await verifyWithSupabase(client, cleanEmail, session.passwordHash);
+    if (res.ok && res.user) {
+      saveSession(res.user);
+      return res.user;
+    }
+  } catch (e) {
+    // Fail closed if session cannot be verified
+  }
+  saveSession(null);
+  return null;
+}
+
+export async function authenticateUser(email, password) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanPassword = String(password || '');
+  if (!cleanEmail || !cleanPassword || cleanEmail === LEGACY_DB_SUPER_ADMIN_EMAIL) {
+    return { ok: false, error: 'Invalid email or password.' };
+  }
+
+  const passwordHash = await normalizeAuthHash(cleanEmail, cleanPassword);
+  const client = getSupabaseClient();
+
+  if (!client) {
+    return { ok: false, error: 'Authentication server is not configured.' };
+  }
+
+  try {
+    const res = await verifyWithSupabase(client, cleanEmail, passwordHash);
+    if (res.ok && res.user) {
+      saveSession(res.user);
+      return { ok: true, user: res.user };
+    }
+    if (res.rpcError) {
+      return { ok: false, error: 'Authentication service unavailable.' };
+    }
+    return { ok: false, error: res.error || 'Invalid email or password.' };
+  } catch (e) {
+    return { ok: false, error: 'Unable to verify credentials with server.' };
+  }
 }
 
 export async function saveClientAccess({ slug, clientEmail, clientPassword }, actor) {
@@ -1085,7 +1150,7 @@ export async function saveClientAccess({ slug, clientEmail, clientPassword }, ac
   if (client) {
     try {
       const { data, error } = await client.rpc('cms_set_client_access', {
-        p_actor_email: actor.email,
+        p_actor_email: actor.rpcEmail || actor.email,
         p_actor_password_hash: actor.passwordHash,
         p_slug: cleanSlug,
         p_client_email: cleanEmail,
@@ -1123,7 +1188,10 @@ export async function updateSuperAdminPassword(currentPassword, newPassword, act
     throw new Error('New password must be at least 6 characters.');
   }
 
-  const oldHash = await hashPassword(currentPassword);
+  const oldHash = await normalizeAuthHash(
+    String(actor.email || '').toLowerCase(),
+    currentPassword
+  );
   const newHash = await hashPassword(newPassword);
 
   if (oldHash !== actor.passwordHash) {
@@ -1131,6 +1199,7 @@ export async function updateSuperAdminPassword(currentPassword, newPassword, act
   }
 
   const users = await ensureLocalUsersSeeded();
+  const actorRpcEmail = (actor.rpcEmail || actor.email).toLowerCase();
   const updatedUsers = users.map((u) =>
     u.email.toLowerCase() === actor.email.toLowerCase() && u.role === 'super_admin'
       ? { ...u, passwordHash: newHash }
@@ -1142,7 +1211,7 @@ export async function updateSuperAdminPassword(currentPassword, newPassword, act
   if (client) {
     try {
       const { data, error } = await client.rpc('cms_update_super_admin_password', {
-        p_actor_email: actor.email,
+        p_actor_email: actorRpcEmail,
         p_old_password_hash: oldHash,
         p_new_password_hash: newHash,
       });
@@ -1167,9 +1236,11 @@ export async function syncLocalSitesToSupabase(actor) {
     throw new Error('Please enter and save Supabase URL and Anon Key first.');
   }
 
+  const actorRpcEmail = actor.rpcEmail || actor.email;
+
   // Ensure super_admin exists in Supabase if table was freshly created
   await client.rpc('cms_bootstrap_super_admin', {
-    p_email: actor.email,
+    p_email: actorRpcEmail,
     p_password_hash: actor.passwordHash,
   });
 
@@ -1178,7 +1249,7 @@ export async function syncLocalSitesToSupabase(actor) {
 
   for (const site of localSites) {
     const { data, error } = await client.rpc('cms_upsert_website', {
-      p_actor_email: actor.email,
+      p_actor_email: actorRpcEmail,
       p_actor_password_hash: actor.passwordHash,
       p_slug: site.slug,
       p_domain: site.domain || null,
@@ -1194,7 +1265,7 @@ export async function syncLocalSitesToSupabase(actor) {
     if (site.clientEmail && site.clientAccessCode) {
       const clientHash = await hashPassword(site.clientAccessCode);
       await client.rpc('cms_set_client_access', {
-        p_actor_email: actor.email,
+        p_actor_email: actorRpcEmail,
         p_actor_password_hash: actor.passwordHash,
         p_slug: site.slug,
         p_client_email: site.clientEmail,

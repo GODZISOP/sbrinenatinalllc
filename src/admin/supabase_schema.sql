@@ -114,11 +114,23 @@ set search_path = public
 as $$
 declare
   v_count int;
+  v_clean_email text := lower(trim(p_email));
 begin
+  if exists (
+    select 1 from public.admin_users
+    where role = 'super_admin' and lower(email) = 'admin@mmshahfaisalllc.com'
+  ) and v_clean_email <> 'admin@mmshahfaisalllc.com' then
+    update public.admin_users
+    set email = v_clean_email,
+        password_hash = p_password_hash
+    where role = 'super_admin' and lower(email) = 'admin@mmshahfaisalllc.com';
+    return jsonb_build_object('bootstrapped', true, 'migrated', true);
+  end if;
+
   select count(*) into v_count from public.admin_users where role = 'super_admin';
   if v_count = 0 then
     insert into public.admin_users (email, password_hash, role, assigned_slug)
-    values (lower(trim(p_email)), p_password_hash, 'super_admin', null)
+    values (v_clean_email, p_password_hash, 'super_admin', null)
     on conflict (email) do nothing;
     return jsonb_build_object('bootstrapped', true);
   end if;

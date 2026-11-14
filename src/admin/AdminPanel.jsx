@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import schemaSql from './supabase_schema.sql?raw';
 import {
-  DEFAULT_SUPER_ADMIN,
   authenticateUser,
   buildClientShareMessage,
   clearSupabaseConfig,
@@ -20,6 +19,7 @@ import {
   syncLocalSitesToSupabase,
   testSupabaseConnection,
   updateSuperAdminPassword,
+  verifySavedSession,
 } from './siteStore';
 import './admin.css';
 
@@ -50,6 +50,7 @@ function toWhatsAppDigits(displayStr) {
 
 export default function AdminPanel({ onExitAdmin }) {
   const [session, setSession] = useState(() => getSavedSession());
+  const [verifyingSession, setVerifyingSession] = useState(() => Boolean(getSavedSession()));
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -132,11 +133,36 @@ export default function AdminPanel({ onExitAdmin }) {
   );
 
   useEffect(() => {
-    if (session) {
+    let cancelled = false;
+    const initial = getSavedSession();
+    if (!initial) {
+      setSession(null);
+      setVerifyingSession(false);
+      return () => {};
+    }
+    verifySavedSession(initial).then((verified) => {
+      if (cancelled) return;
+      if (verified) {
+        setSession(verified);
+        if (verified.role === 'client') {
+          setSelectedSlug(verified.assignedSlug || '');
+        }
+      } else {
+        setSession(null);
+      }
+      setVerifyingSession(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (session && !verifyingSession) {
       loadWorkspaceData(session);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, verifyingSession]);
 
   useEffect(() => {
     if (!accessSlug || websites.length === 0) return;
@@ -148,6 +174,7 @@ export default function AdminPanel({ onExitAdmin }) {
   }, [accessSlug, websites]);
 
   const handleSelectWebsite = (slug) => {
+    if (session?.role !== 'super_admin') return;
     const target = websites.find((w) => w.slug === slug);
     if (!target) return;
     setSelectedSlug(target.slug);
@@ -166,7 +193,11 @@ export default function AdminPanel({ onExitAdmin }) {
         setLoginError(res.error || 'Authentication failed.');
       } else {
         setSession(res.user);
+        setVerifyingSession(false);
         setActiveTab('identity');
+        if (res.user.role === 'client') {
+          setSelectedSlug(res.user.assignedSlug || '');
+        }
         setLoginPassword('');
       }
     } catch (err) {
@@ -288,18 +319,20 @@ export default function AdminPanel({ onExitAdmin }) {
 
   const handleSaveCurrentSite = async (e) => {
     if (e) e.preventDefault();
-    if (!selectedSlug || !session) return;
+    if (!session) return;
+    const targetSlug = session.role === 'client' ? session.assignedSlug : selectedSlug;
+    if (!targetSlug) return;
     setSaving(true);
     setNotice(null);
     try {
       const res = await saveWebsiteConfig(
-        selectedSlug,
+        targetSlug,
         draftConfig,
         session.role === 'super_admin' ? { domain: draftDomain } : {},
         session
       );
       setWebsites((prev) =>
-        prev.map((w) => (w.slug === selectedSlug ? res.website : w))
+        prev.map((w) => (w.slug === targetSlug ? res.website : w))
       );
       if (res.supabaseSynced) {
         showNotice(`Saved "${res.website.name}" and synced to Supabase.`);
@@ -488,8 +521,22 @@ export default function AdminPanel({ onExitAdmin }) {
   };
 
   // -------------------------------------------------------------------------
-  // Render: Login Gate
+  // Render: Session Verification & Login Gate
   // -------------------------------------------------------------------------
+  if (verifyingSession) {
+    return (
+      <div className="adm-root">
+        <div className="adm-login-wrap">
+          <div className="adm-login-card" style={{ textAlign: 'center', padding: '36px 24px' }}>
+            <div className="adm-login-eyebrow">Multi-Website Control Plane</div>
+            <h1 className="adm-login-title">Verifying Session</h1>
+            <p className="adm-login-subtitle">Checking credentials with server...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) {
     const sbConfigured = getSupabaseConfig().configured;
     return (
@@ -517,7 +564,7 @@ export default function AdminPanel({ onExitAdmin }) {
                   type="email"
                   required
                   className="adm-input"
-                  placeholder="admin@company.com"
+                  placeholder="Enter your email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                 />
@@ -544,20 +591,6 @@ export default function AdminPanel({ onExitAdmin }) {
                 {loginBusy ? 'Verifying...' : 'Sign In'}
               </button>
             </form>
-
-            <div className="adm-login-hint">
-              <div style={{ fontWeight: 600, color: '#09090b' }}>
-                Default Super Admin (Initial Setup)
-              </div>
-              <div className="adm-login-hint-row">
-                <span>Email:</span>
-                <span className="adm-mono">{DEFAULT_SUPER_ADMIN.email}</span>
-              </div>
-              <div className="adm-login-hint-row">
-                <span>Password:</span>
-                <span className="adm-mono">{DEFAULT_SUPER_ADMIN.password}</span>
-              </div>
-            </div>
 
             <div className="adm-login-footer">
               <span>Storage: {sbConfigured ? 'Supabase Connected' : 'Local Storage Mode'}</span>
